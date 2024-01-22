@@ -29,6 +29,7 @@ import sys
 import datetime
 import getpass
 import re
+import os
 
 from docopt import docopt
 from robobrowser import RoboBrowser
@@ -54,6 +55,14 @@ def login(browser: RoboBrowser):
             print("Email or password incorrect. Please try again.\n")
         else:
             return browser.session.cookies['login']
+
+def login_directly(browser: RoboBrowser, username: str, password: str):
+    perform_login(browser, username, password)
+    if not logged_in(browser):
+        print("Email or password incorrect.\n")
+        sys.exit()
+    else:
+        return browser.session.cookies['login']
 
 
 def perform_login(browser: RoboBrowser, username: str, password: str):
@@ -248,6 +257,8 @@ def main(arguments):
     # Use login token pass by argument or let the caller log in right here
     if arguments['--use-login-token']:
         token = arguments['--use-login-token']
+    elif os.getenv("KICKTIPP_USERNAME") is not None and os.getenv('KICKTIPP_PASSWORD') is not None:
+        token = login_directly(browser, os.getenv("KICKTIPP_USERNAME"), os.getenv("KICKTIPP_PASSWORD"))
     else:
         token = login(browser)
 
