@@ -199,36 +199,41 @@ def place_bets(browser: RoboBrowser, communities: list, predictor, override=Fals
                matchday=None):
     """Place bets on all given communities."""
     for com in communities:
-        print("Community: {0}".format(com))
-        matches = parse_match_rows(browser, com, matchday)
-        submitform = browser.get_form()
-        for field_hometeam, field_roadteam, match in matches:
-            if not field_hometeam or not field_roadteam:
-                print("{0} - no bets possible".format(match))
-                continue
-
-            input_hometeam_value = submitform[field_hometeam.attrs['name']].value
-            input_roadteam_value = submitform[field_roadteam.attrs['name']].value
-            if not override and (input_hometeam_value or input_roadteam_value):
-                print("{0} - skipped, already placed {1}:{2}".format(match,
-                                                                     input_hometeam_value, input_roadteam_value))
-                continue
-
-            if deadline is not None:
-                if not is_before_dealine(deadline, match.match_date):
-                    time_to_match = match.match_date - datetime.datetime.now()
-                    print("{0} - not betting yet, due in {1}".format(match,
-                                                                     timedelta_tostring(time_to_match)))
+        try:
+            print("Community: {0}".format(com))
+            matches = parse_match_rows(browser, com, matchday)
+            submitform = browser.get_form()
+            for field_hometeam, field_roadteam, match in matches:
+                if not field_hometeam or not field_roadteam:
+                    print("{0} - no bets possible".format(match))
                     continue
 
-            homebet, roadbet = predictor.predict(match)
-            print("{0} - betting {1}:{2}".format(match, homebet, roadbet))
-            submitform[field_hometeam.attrs['name']] = str(homebet)
-            submitform[field_roadteam.attrs['name']] = str(roadbet)
-        if not dryrun:
-            browser.submit_form(submitform, submit='submitbutton')
-        else:
-            print("INFO: Dry run, no bets were placed")
+                input_hometeam_value = submitform[field_hometeam.attrs['name']].value
+                input_roadteam_value = submitform[field_roadteam.attrs['name']].value
+                if not override and (input_hometeam_value or input_roadteam_value):
+                    print("{0} - skipped, already placed {1}:{2}".format(match,
+                                                                         input_hometeam_value, input_roadteam_value))
+                    continue
+
+                if deadline is not None:
+                    if not is_before_dealine(deadline, match.match_date):
+                        time_to_match = match.match_date - datetime.datetime.now()
+                        print("{0} - not betting yet, due in {1}".format(match,
+                                                                         timedelta_tostring(time_to_match)))
+                        continue
+
+                homebet, roadbet = predictor.predict(match)
+                print("{0} - betting {1}:{2}".format(match, homebet, roadbet))
+                submitform[field_hometeam.attrs['name']] = str(homebet)
+                submitform[field_roadteam.attrs['name']] = str(roadbet)
+            if not dryrun:
+                browser.submit_form(submitform, submit='submitbutton')
+            else:
+                print("INFO: Dry run, no bets were placed")
+        except Exception as e:
+            print("Betting failed for community: ", com)
+            print(e)
+
 
 
 def validate_arguments(arguments):
