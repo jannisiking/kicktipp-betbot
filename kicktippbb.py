@@ -56,6 +56,7 @@ def login(browser: RoboBrowser):
         else:
             return browser.session.cookies['login']
 
+
 def login_directly(browser: RoboBrowser, username: str, password: str):
     perform_login(browser, username, password)
     if not logged_in(browser):
@@ -101,12 +102,12 @@ def get_table_rows(soup):
     return [tr.find_all('td') for tr in tbody.find_all('tr')]
 
 
-def parse_match_rows(browser: RoboBrowser, community, matchday = None):
+def parse_match_rows(browser: RoboBrowser, community, matchday=None):
     """Fetch latest odds for each match
     Returns a list of tuples (heimtipp,gasttipp, match)
     """
     browser.open(get_tippabgabe_url(community, matchday))
-    
+
     content = get_kicktipp_content(browser)
     rows = get_table_rows(content)
 
@@ -118,7 +119,7 @@ def parse_match_rows(browser: RoboBrowser, community, matchday = None):
         gasttipp = row[3].find(
             'input', id=lambda x: x and x.endswith('_gastTipp'))
         try:
-            odds=[odd.replace(" ","") for odd in row[4].get_text().split("/")]
+            odds = [odd.replace(" ", "") for odd in split_odds(row[4].get_text())]
             match = Match(row[1].get_text(), row[2].get_text(), row[0].get_text(
             ), odds[0], odds[1], odds[2])
         except:
@@ -131,7 +132,18 @@ def parse_match_rows(browser: RoboBrowser, community, matchday = None):
 
     return matchtuple
 
-def get_tippabgabe_url(community, matchday = None):
+
+def split_odds(odd_string):
+    possible_split_characters = ["/", "|"]
+    for character in possible_split_characters:
+        result = odd_string.split(character)
+        if len(result) == 3:
+            return result
+    raise Error("Splitting odds did not return valid result")
+
+
+
+def get_tippabgabe_url(community, matchday=None):
     tippabgabeurl = URL_BASE + '/' + community + '/tippabgabe'
     if matchday is None:
         return tippabgabeurl
@@ -159,7 +171,9 @@ def get_communities(browser: RoboBrowser, desired_communities: list):
     browser.open(URL_BASE + '/info/profil/meinetipprunden')
     content = get_kicktipp_content(browser)
     links = content.find_all('a')
-    def gethreftext(link): return link.get('href').replace("/", "")
+
+    def gethreftext(link):
+        return link.get('href').replace("/", "")
 
     def is_community(link):
         hreftext = gethreftext(link)
@@ -168,6 +182,7 @@ def get_communities(browser: RoboBrowser, desired_communities: list):
         else:
             linkdiv = link.find('div', {'class': "menu-title-mit-tippglocke"})
             return linkdiv and linkdiv.get_text() == hreftext
+
     community_list = [gethreftext(link)
                       for link in links if is_community(link)]
     if len(desired_communities) > 0:
@@ -180,7 +195,8 @@ def intersection(a, b):
     return i
 
 
-def place_bets(browser: RoboBrowser, communities: list, predictor, override=False, deadline=None, dryrun=False, matchday=None):
+def place_bets(browser: RoboBrowser, communities: list, predictor, override=False, deadline=None, dryrun=False,
+               matchday=None):
     """Place bets on all given communities."""
     for com in communities:
         print("Community: {0}".format(com))
@@ -225,15 +241,15 @@ def validate_arguments(arguments):
 
 
 def choose_predictor(predictor_param, predictors):
-    if(predictor_param):
-        if(predictor_param in predictors):
+    if (predictor_param):
+        if (predictor_param in predictors):
             predictor = predictors[predictor_param]()
         else:
             exit('Unknown predictor: {}'.format(predictor_param))
     else:
         # Just get the first predictor in the dict and instanciate it
         predictor = next(iter(predictors.values()))()
-    print("Using predictor: "+type(predictor).__name__)
+    print("Using predictor: " + type(predictor).__name__)
     return predictor
 
 
@@ -268,7 +284,7 @@ def main(arguments):
 
     # Which communities are considered, fail if no were found
     communities = get_communities(browser, communities)
-    if(len(communities) == 0):
+    if (len(communities) == 0):
         exit("No community found!?")
 
     # Which prediction method is used
@@ -277,7 +293,8 @@ def main(arguments):
 
     # Place bets
     place_bets(browser, communities, predictor,
-               override=arguments['--override-bets'], deadline=arguments['--deadline'], dryrun=arguments['--dry-run'], matchday=arguments['--matchday'])
+               override=arguments['--override-bets'], deadline=arguments['--deadline'], dryrun=arguments['--dry-run'],
+               matchday=arguments['--matchday'])
 
 
 if __name__ == '__main__':
