@@ -1,6 +1,7 @@
-![kicktipp-img]
-
-[kicktipp-img]: https://www.kicktipp.de/assets/img/cb1059167120/assets/img/illu/startseite.png "Kicktipp"
+Fork motivation
+===============
+I want to run this tool on TrueNAS Scale as an application.
+This fork extends the script with a helm chart specific options for TrueNAS.
 
 kicktipp-betbot
 ===============
