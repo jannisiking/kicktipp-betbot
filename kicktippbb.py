@@ -30,7 +30,9 @@ import datetime
 import getpass
 import re
 import os
+import time
 
+import schedule
 from docopt import docopt
 from robobrowser import RoboBrowser
 
@@ -258,7 +260,7 @@ def choose_predictor(predictor_param, predictors):
     return predictor
 
 
-def main(arguments):
+def betting(arguments):
     browser = RoboBrowser(parser="html5lib")
 
     validate_arguments(arguments)
@@ -300,6 +302,15 @@ def main(arguments):
     place_bets(browser, communities, predictor,
                override=arguments['--override-bets'], deadline=arguments['--deadline'], dryrun=arguments['--dry-run'],
                matchday=arguments['--matchday'])
+
+
+def main(arguments):
+    schedule.every().day.at("08:00").do(betting,arguments)
+
+    # Endlosschleife für Scheduling
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 if __name__ == '__main__':
