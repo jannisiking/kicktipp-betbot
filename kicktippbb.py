@@ -303,9 +303,11 @@ def betting(arguments):
                override=arguments['--override-bets'], deadline=arguments['--deadline'], dryrun=arguments['--dry-run'],
                matchday=arguments['--matchday'])
 
-
 def main(arguments):
+    print("Kicktipp BetBot gestartet!")
+
     schedule.every().day.at("08:00").do(betting,arguments)
+    schedule.every().minute.do(print, "Noch online: ", datetime.datetime.now())
 
     # Endlosschleife für Scheduling
     while True:
