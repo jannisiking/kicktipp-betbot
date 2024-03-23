@@ -121,7 +121,7 @@ def parse_match_rows(browser: RoboBrowser, community, matchday=None):
         gasttipp = row[3].find(
             'input', id=lambda x: x and x.endswith('_gastTipp'))
         try:
-            odds = [odd.replace(" ", "") for odd in split_odds(row[4].get_text())]
+            odds = split_odds(row[4].get_text())
             match = Match(row[1].get_text(), row[2].get_text(), row[0].get_text(
             ), odds[0], odds[1], odds[2])
         except:
@@ -136,12 +136,12 @@ def parse_match_rows(browser: RoboBrowser, community, matchday=None):
 
 
 def split_odds(odd_string):
-    possible_split_characters = ["/", "|"]
-    for character in possible_split_characters:
-        result = odd_string.split(character)
-        if len(result) == 3:
-            return result
-    raise Error("Splitting odds did not return valid result")
+    pattern = r'\d*\.?\d+'
+    result = re.findall(pattern, odd_string)
+    if len(result) == 3:
+        return result
+    else:
+        raise ValueError("Splitting odds did not return valid result")
 
 
 
