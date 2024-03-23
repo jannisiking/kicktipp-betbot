@@ -3,6 +3,13 @@ Fork motivation
 I want to run this tool on TrueNAS Scale as an application.
 The script can be run inside a Dockerfile to run the script every day.
 
+Pushing to registry
+===================
+```bash
+docker buildx build --platform=linux/amd64,linux/arm64/v8  -t iking1211/kicktipp-betbot:1.0.3 --push .
+```
+Hierbei muss die Version immer angepasst sein.
+
 kicktipp-betbot
 ===============
 
