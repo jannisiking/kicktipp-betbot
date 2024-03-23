@@ -1,7 +1,7 @@
 Fork motivation
 ===============
 I want to run this tool on TrueNAS Scale as an application.
-This fork extends the script with a helm chart specific options for TrueNAS.
+The script can be run inside a Dockerfile to run the script every day.
 
 kicktipp-betbot
 ===============
